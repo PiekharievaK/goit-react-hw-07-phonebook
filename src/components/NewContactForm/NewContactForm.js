@@ -2,25 +2,20 @@ import PropTypes from 'prop-types';
 import { Report } from 'notiflix';
 import s from './NewContactForm.module.css';
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { add } from 'redux/store';
+import { useSelector } from 'react-redux';
+import { useAddContactsMutation } from 'contactsAPI/contactsAPI';
 
 function ContactForm(props) {
-  const dispatch = useDispatch();
-  const [state, setState] = useState({name: '', number: ''});
+  const [state, setState] = useState({ name: '', phone: '' });
+  const names = useSelector(state => state.contacts.filter);
 
+  const [addContact] = useAddContactsMutation();
 
   const handleSubmit = e => {
     e.preventDefault();
 
-    const names = props.contactsArr;
-
-    const shortid = require('shortid');
     const name = e.target.elements.name.value;
-    const number = e.target.elements.number.value;
-
-  
-    const contactInfo = { id: shortid(), name: name, number: number };
+    const number = e.target.elements.phone.value;
 
     if (names.includes(name.toLowerCase())) {
       Report.warning(
@@ -33,16 +28,15 @@ function ContactForm(props) {
       );
       return;
     }
-    dispatch(add(contactInfo));
+    addContact({ name: name, phone: number });
 
-   reset();
+    reset();
   };
 
   const reset = () => {
-    state.name ='';
-    state.number ='';
+    state.name = '';
+    state.phone = '';
   };
-
 
   const handleChange = e => {
     const key = e.target.name;
@@ -70,10 +64,10 @@ function ContactForm(props) {
         <span>Number</span>
         <input
           type="tel"
-          name="number"
+          name="phone"
           className={s.input}
           onChange={handleChange}
-          value={state.number}
+          value={state.phone}
           placeholder="Enter number"
           pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
           title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
@@ -89,7 +83,7 @@ function ContactForm(props) {
 
 ContactForm.propTypes = {
   name: PropTypes.string,
-  number: PropTypes.number,
+  phone: PropTypes.number,
 };
 
 export default ContactForm;

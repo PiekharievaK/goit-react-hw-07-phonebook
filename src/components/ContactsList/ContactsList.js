@@ -1,62 +1,49 @@
-import PropTypes from 'prop-types';
-
-
+import {
+  useGetContactsQuery,
+  useDeleteContactsMutation,
+} from 'contactsAPI/contactsAPI';
+import { optimizePhone } from 'helpers/optimizePhone';
 import s from './ContactsList.module.css';
+import { useSelector } from 'react-redux';
+import { findContacts } from 'helpers/filter';
 
-function ContactsList({ data, deleteFoo}) {
+const ContactsList = () => {
+  const contactsFilter = useSelector(state => state.contacts.filter);
 
+  const { data = [], isLoading, isError, error } = useGetContactsQuery();
+  const [deleteContacts] = useDeleteContactsMutation();
 
+  if (isLoading) {
+    return <h2>Loading...</h2>;
+  }
+
+  const contacts = findContacts(data, contactsFilter);
+  if (contacts.length === 0 || (isError && error.status === 404)) {
+    return <h2>Please Add Contacts</h2>;
+  }
   return (
     <ul className={s.list}>
-      {data.map(element => {
+      {contacts.map(element => {
         return (
           <li key={element.id} className={s.item}>
             <span className={s.contact}>
               <span className={s.name}>{element.name}:</span>
-              <span className={s.number}> {optimizePhone(element.number)}</span>
+              <span className={s.phone}> {optimizePhone(element.phone)}</span>
             </span>
             <span className={s.buttonsBox}>
-              <button id={element.id} className={s.button} onClick={()=>deleteFoo(element.id)}>
-                Delete
+              <button
+                id={element.id}
+                className={s.button}
+                onClick={() => deleteContacts(element.id)}
+              >
+               Delete
               </button>{' '}
-              </span>
+            </span>
           </li>
         );
       })}
     </ul>
   );
-}
-
-function optimizePhone(numbertoformat) {
-  if (
-    (numbertoformat.includes('+') && !numbertoformat.includes('-')) ||
-    numbertoformat.length >= 12
-  ) {
-    const formatNumber = numbertoformat.replace(
-      /(\d{2})(\d{3})(\d{3})(\d{2})(\d{2})/,
-      '$1 ($2) $3-$4-$5'
-    );
-    return formatNumber;
-  } else if (!numbertoformat.includes('-') && numbertoformat.length <= 9) {
-    const formatNumber = numbertoformat.replace(
-      /(\d{3})(\d{2})(\d{1})/,
-      '$1-$2-$3'
-    );
-    return formatNumber;
-  } else if (!numbertoformat.includes('-') && numbertoformat.length >= 10) {
-    const formatNumber = numbertoformat.replace(
-      /(\d{3})(\d{3})(\d{2})(\d{2})/,
-      '$1-$2-$3-$4'
-    );
-    return formatNumber;
-  } else {
-    return numbertoformat;
-  }
-}
-
-ContactsList.propTypes = {
-  data: PropTypes.array.isRequired,
-  deleteFoo: PropTypes.func.isRequired,
 };
 
 export default ContactsList;
