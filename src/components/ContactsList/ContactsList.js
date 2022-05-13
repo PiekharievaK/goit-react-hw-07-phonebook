@@ -37,7 +37,7 @@ const ContactsList = () => {
                 onClick={() => deleteContacts(element.id)}
               >
                Delete
-              </button>{' '}
+              </button>
             </span>
           </li>
         );
